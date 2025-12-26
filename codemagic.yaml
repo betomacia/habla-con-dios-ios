@@ -1,0 +1,78 @@
+workflows:
+  ios-capacitor:
+    name: iOS Capacitor Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: es.movilive.hablacondios2
+      vars:
+        BUNDLE_ID: "es.movilive.hablacondios2"
+      node: 20
+    scripts:
+      - name: Install dependencies
+        script: npm install --legacy-peer-deps
+      - name: Install Capacitor
+        script: npm install @capacitor/cli@7 @capacitor/ios@7 --legacy-peer-deps
+      - name: Build web app
+        script: npm run build
+      - name: Add iOS platform
+        script: |
+          npx cap add ios || true
+          npx cap sync ios
+      - name: Fix Bundle ID
+        script: |
+          cd ios/App
+          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = io.ionic.starter/PRODUCT_BUNDLE_IDENTIFIER = es.movilive.hablacondios2/g" App.xcodeproj/project.pbxproj
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier es.movilive.hablacondios2" App/Info.plist
+      - name: Add privacy and export compliance
+        script: |
+          cd ios/App/App
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'Habla con Dios necesita acceso al microfono para escuchar tus oraciones.'" Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSSpeechRecognitionUsageDescription string 'Habla con Dios utiliza el reconocimiento de voz para entender tus palabras.'" Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" Info.plist || true
+      - name: Setup App Icons
+        script: |
+          ICON_DIR=ios/App/App/Assets.xcassets/AppIcon.appiconset
+          SOURCE_ICON=resources/icono.png
+          sips -z 20 20 $SOURCE_ICON --out $ICON_DIR/icon-20.png
+          sips -z 40 40 $SOURCE_ICON --out $ICON_DIR/icon-20@2x.png
+          sips -z 60 60 $SOURCE_ICON --out $ICON_DIR/icon-20@3x.png
+          sips -z 29 29 $SOURCE_ICON --out $ICON_DIR/icon-29.png
+          sips -z 58 58 $SOURCE_ICON --out $ICON_DIR/icon-29@2x.png
+          sips -z 87 87 $SOURCE_ICON --out $ICON_DIR/icon-29@3x.png
+          sips -z 40 40 $SOURCE_ICON --out $ICON_DIR/icon-40.png
+          sips -z 80 80 $SOURCE_ICON --out $ICON_DIR/icon-40@2x.png
+          sips -z 120 120 $SOURCE_ICON --out $ICON_DIR/icon-40@3x.png
+          sips -z 120 120 $SOURCE_ICON --out $ICON_DIR/icon-60@2x.png
+          sips -z 180 180 $SOURCE_ICON --out $ICON_DIR/icon-60@3x.png
+          sips -z 76 76 $SOURCE_ICON --out $ICON_DIR/icon-76.png
+          sips -z 152 152 $SOURCE_ICON --out $ICON_DIR/icon-76@2x.png
+          sips -z 167 167 $SOURCE_ICON --out $ICON_DIR/icon-83.5@2x.png
+          sips -z 1024 1024 $SOURCE_ICON --out $ICON_DIR/icon-1024.png
+          echo '{"images":[{"idiom":"iphone","scale":"2x","size":"20x20","filename":"icon-20@2x.png"},{"idiom":"iphone","scale":"3x","size":"20x20","filename":"icon-20@3x.png"},{"idiom":"iphone","scale":"2x","size":"29x29","filename":"icon-29@2x.png"},{"idiom":"iphone","scale":"3x","size":"29x29","filename":"icon-29@3x.png"},{"idiom":"iphone","scale":"2x","size":"40x40","filename":"icon-40@2x.png"},{"idiom":"iphone","scale":"3x","size":"40x40","filename":"icon-40@3x.png"},{"idiom":"iphone","scale":"2x","size":"60x60","filename":"icon-60@2x.png"},{"idiom":"iphone","scale":"3x","size":"60x60","filename":"icon-60@3x.png"},{"idiom":"ipad","scale":"1x","size":"20x20","filename":"icon-20.png"},{"idiom":"ipad","scale":"2x","size":"20x20","filename":"icon-20@2x.png"},{"idiom":"ipad","scale":"1x","size":"29x29","filename":"icon-29.png"},{"idiom":"ipad","scale":"2x","size":"29x29","filename":"icon-29@2x.png"},{"idiom":"ipad","scale":"1x","size":"40x40","filename":"icon-40.png"},{"idiom":"ipad","scale":"2x","size":"40x40","filename":"icon-40@2x.png"},{"idiom":"ipad","scale":"1x","size":"76x76","filename":"icon-76.png"},{"idiom":"ipad","scale":"2x","size":"76x76","filename":"icon-76@2x.png"},{"idiom":"ipad","scale":"2x","size":"83.5x83.5","filename":"icon-83.5@2x.png"},{"idiom":"ios-marketing","scale":"1x","size":"1024x1024","filename":"icon-1024.png"}],"info":{"author":"xcode","version":1}}' > $ICON_DIR/Contents.json
+      - name: Set build number
+        script: |
+          cd ios/App
+          agvtool new-version -all 71
+      - name: Install CocoaPods
+        script: cd ios/App && pod install
+      - name: Set up code signing
+        script: |
+          app-store-connect fetch-signing-files "es.movilive.hablacondios2" --type IOS_APP_STORE --create
+          xcode-project use-profiles --project ios/App/App.xcodeproj
+      - name: Build iOS
+        script: |
+          xcode-project build-ipa \
+            --workspace ios/App/App.xcworkspace \
+            --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
