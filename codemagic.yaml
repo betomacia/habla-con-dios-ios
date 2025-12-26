@@ -57,7 +57,7 @@ workflows:
       - name: Set build number
         script: |
           cd ios/App
-          agvtool new-version -all 71
+          agvtool new-version -all 72
       - name: Install CocoaPods
         script: cd ios/App && pod install
       - name: Set up code signing
