@@ -65,5 +65,13 @@
                 <string>fbapi</string>
                 <string>fb-messenger-share-api</string>
         </array>
+        <key>NSMicrophoneUsageDescription</key>
+        <string>Habla con Dios necesita acceso al microfono para escuchar tus oraciones.</string>
+        <key>NSSpeechRecognitionUsageDescription</key>
+        <string>Habla con Dios utiliza el reconocimiento de voz para entender tus palabras.</string>
+        <key>NSUserTrackingUsageDescription</key>
+        <string>Habla con Dios utiliza el identificador de publicidad para mejorar tu experiencia con anuncios relevantes.</string>
+        <key>ITSAppUsesNonExemptEncryption</key>
+        <false/>
 </dict>
 </plist>

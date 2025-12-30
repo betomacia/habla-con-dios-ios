@@ -1,4 +1,4 @@
-﻿workflows:
+workflows:
   ios-capacitor:
     name: iOS Capacitor Build
     max_build_duration: 60
@@ -15,66 +15,117 @@
     scripts:
       - name: Install dependencies
         script: npm install --legacy-peer-deps
-      - name: Install Capacitor
-        script: npm install @capacitor/cli@7 @capacitor/ios@7 @capacitor-community/facebook-login --legacy-peer-deps
       - name: Build web app
         script: npm run build
       - name: Add iOS platform
         script: |
           rm -rf ios
-          npx cap add ios || true
-      - name: Set iOS Deployment Target
+          npx cap add ios
+      - name: Copy Info.plist with Facebook SDK
         script: |
-          cd ios/App
-          sed -i '' "s/platform :ios, '13.0'/platform :ios, '14.0'/g" Podfile
-          find . -name "project.pbxproj" -exec sed -i '' "s/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g" {} \;
-      - name: Sync iOS
-        script: npx cap sync ios
+          cat > ios/App/App/Info.plist << 'PLISTEOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>en</string>
+            <key>CFBundleDisplayName</key>
+            <string>Habla con Dios</string>
+            <key>CFBundleExecutable</key>
+            <string>$(EXECUTABLE_NAME)</string>
+            <key>CFBundleIdentifier</key>
+            <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>$(PRODUCT_NAME)</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>$(MARKETING_VERSION)</string>
+            <key>CFBundleVersion</key>
+            <string>$(CURRENT_PROJECT_VERSION)</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
+            <key>UILaunchStoryboardName</key>
+            <string>LaunchScreen</string>
+            <key>UIMainStoryboardFile</key>
+            <string>Main</string>
+            <key>UIRequiredDeviceCapabilities</key>
+            <array>
+              <string>armv7</string>
+            </array>
+            <key>UISupportedInterfaceOrientations</key>
+            <array>
+              <string>UIInterfaceOrientationPortrait</string>
+              <string>UIInterfaceOrientationLandscapeLeft</string>
+              <string>UIInterfaceOrientationLandscapeRight</string>
+            </array>
+            <key>UISupportedInterfaceOrientations~ipad</key>
+            <array>
+              <string>UIInterfaceOrientationPortrait</string>
+              <string>UIInterfaceOrientationPortraitUpsideDown</string>
+              <string>UIInterfaceOrientationLandscapeLeft</string>
+              <string>UIInterfaceOrientationLandscapeRight</string>
+            </array>
+            <key>UIViewControllerBasedStatusBarAppearance</key>
+            <true/>
+            <key>CFBundleURLTypes</key>
+            <array>
+              <dict>
+                <key>CFBundleURLSchemes</key>
+                <array>
+                  <string>fb3422761491223464</string>
+                </array>
+              </dict>
+            </array>
+            <key>FacebookAppID</key>
+            <string>3422761491223464</string>
+            <key>FacebookClientToken</key>
+            <string>504891f7b471eef8f707c6f3eec31e2e</string>
+            <key>FacebookDisplayName</key>
+            <string>Habla con Dios</string>
+            <key>LSApplicationQueriesSchemes</key>
+            <array>
+              <string>fbapi</string>
+              <string>fb-messenger-share-api</string>
+            </array>
+            <key>NSMicrophoneUsageDescription</key>
+            <string>Habla con Dios necesita acceso al microfono para escuchar tus oraciones.</string>
+            <key>NSSpeechRecognitionUsageDescription</key>
+            <string>Habla con Dios utiliza el reconocimiento de voz para entender tus palabras.</string>
+            <key>NSUserTrackingUsageDescription</key>
+            <string>Habla con Dios utiliza el identificador de publicidad para mejorar tu experiencia con anuncios relevantes.</string>
+            <key>ITSAppUsesNonExemptEncryption</key>
+            <false/>
+          </dict>
+          </plist>
+          PLISTEOF
       - name: Fix Bundle ID
         script: |
           cd ios/App
           sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = io.ionic.starter/PRODUCT_BUNDLE_IDENTIFIER = es.movilive.hablacondios2/g" App.xcodeproj/project.pbxproj
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier es.movilive.hablacondios2" App/Info.plist
-      - name: Add Facebook SDK config
-        script: |
-          cd ios/App/App
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string fb3422761491223464" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :FacebookAppID string 3422761491223464" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :FacebookClientToken string 504891f7b471eef8f707c6f3eec31e2e" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :FacebookDisplayName string 'Habla con Dios'" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :LSApplicationQueriesSchemes array" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :LSApplicationQueriesSchemes:0 string fbapi" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :LSApplicationQueriesSchemes:1 string fb-messenger-share-api" Info.plist || true
-      - name: Add privacy and export compliance
-        script: |
-          cd ios/App/App
-          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'Habla con Dios necesita acceso al microfono para escuchar tus oraciones.'" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :NSSpeechRecognitionUsageDescription string 'Habla con Dios utiliza el reconocimiento de voz para entender tus palabras.'" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :NSUserTrackingUsageDescription string 'Habla con Dios utiliza el identificador de publicidad para mejorar tu experiencia con anuncios relevantes.'" Info.plist || true
       - name: Setup App Icons
         script: |
           ICON_DIR=ios/App/App/Assets.xcassets/AppIcon.appiconset
           SOURCE_ICON=resources/icono.png
-          sips -z 20 20 \ --out \/icon-20.png
-          sips -z 40 40 \ --out \/icon-20@2x.png
-          sips -z 60 60 \ --out \/icon-20@3x.png
-          sips -z 29 29 \ --out \/icon-29.png
-          sips -z 58 58 \ --out \/icon-29@2x.png
-          sips -z 87 87 \ --out \/icon-29@3x.png
-          sips -z 40 40 \ --out \/icon-40.png
-          sips -z 80 80 \ --out \/icon-40@2x.png
-          sips -z 120 120 \ --out \/icon-40@3x.png
-          sips -z 120 120 \ --out \/icon-60@2x.png
-          sips -z 180 180 \ --out \/icon-60@3x.png
-          sips -z 76 76 \ --out \/icon-76.png
-          sips -z 152 152 \ --out \/icon-76@2x.png
-          sips -z 167 167 \ --out \/icon-83.5@2x.png
-          sips -z 1024 1024 \ --out \/icon-1024.png
-          echo '{"images":[{"idiom":"iphone","scale":"2x","size":"20x20","filename":"icon-20@2x.png"},{"idiom":"iphone","scale":"3x","size":"20x20","filename":"icon-20@3x.png"},{"idiom":"iphone","scale":"2x","size":"29x29","filename":"icon-29@2x.png"},{"idiom":"iphone","scale":"3x","size":"29x29","filename":"icon-29@3x.png"},{"idiom":"iphone","scale":"2x","size":"40x40","filename":"icon-40@2x.png"},{"idiom":"iphone","scale":"3x","size":"40x40","filename":"icon-40@3x.png"},{"idiom":"iphone","scale":"2x","size":"60x60","filename":"icon-60@2x.png"},{"idiom":"iphone","scale":"3x","size":"60x60","filename":"icon-60@3x.png"},{"idiom":"ipad","scale":"1x","size":"20x20","filename":"icon-20.png"},{"idiom":"ipad","scale":"2x","size":"20x20","filename":"icon-20@2x.png"},{"idiom":"ipad","scale":"1x","size":"29x29","filename":"icon-29.png"},{"idiom":"ipad","scale":"2x","size":"29x29","filename":"icon-29@2x.png"},{"idiom":"ipad","scale":"1x","size":"40x40","filename":"icon-40.png"},{"idiom":"ipad","scale":"2x","size":"40x40","filename":"icon-40@2x.png"},{"idiom":"ipad","scale":"1x","size":"76x76","filename":"icon-76.png"},{"idiom":"ipad","scale":"2x","size":"76x76","filename":"icon-76@2x.png"},{"idiom":"ipad","scale":"2x","size":"83.5x83.5","filename":"icon-83.5@2x.png"},{"idiom":"ios-marketing","scale":"1x","size":"1024x1024","filename":"icon-1024.png"}],"info":{"author":"xcode","version":1}}' > \/Contents.json
+          sips -z 20 20 $SOURCE_ICON --out $ICON_DIR/icon-20.png
+          sips -z 40 40 $SOURCE_ICON --out $ICON_DIR/icon-20@2x.png
+          sips -z 60 60 $SOURCE_ICON --out $ICON_DIR/icon-20@3x.png
+          sips -z 29 29 $SOURCE_ICON --out $ICON_DIR/icon-29.png
+          sips -z 58 58 $SOURCE_ICON --out $ICON_DIR/icon-29@2x.png
+          sips -z 87 87 $SOURCE_ICON --out $ICON_DIR/icon-29@3x.png
+          sips -z 40 40 $SOURCE_ICON --out $ICON_DIR/icon-40.png
+          sips -z 80 80 $SOURCE_ICON --out $ICON_DIR/icon-40@2x.png
+          sips -z 120 120 $SOURCE_ICON --out $ICON_DIR/icon-40@3x.png
+          sips -z 120 120 $SOURCE_ICON --out $ICON_DIR/icon-60@2x.png
+          sips -z 180 180 $SOURCE_ICON --out $ICON_DIR/icon-60@3x.png
+          sips -z 76 76 $SOURCE_ICON --out $ICON_DIR/icon-76.png
+          sips -z 152 152 $SOURCE_ICON --out $ICON_DIR/icon-76@2x.png
+          sips -z 167 167 $SOURCE_ICON --out $ICON_DIR/icon-83.5@2x.png
+          sips -z 1024 1024 $SOURCE_ICON --out $ICON_DIR/icon-1024.png
+          echo '{"images":[{"idiom":"iphone","scale":"2x","size":"20x20","filename":"icon-20@2x.png"},{"idiom":"iphone","scale":"3x","size":"20x20","filename":"icon-20@3x.png"},{"idiom":"iphone","scale":"2x","size":"29x29","filename":"icon-29@2x.png"},{"idiom":"iphone","scale":"3x","size":"29x29","filename":"icon-29@3x.png"},{"idiom":"iphone","scale":"2x","size":"40x40","filename":"icon-40@2x.png"},{"idiom":"iphone","scale":"3x","size":"40x40","filename":"icon-40@3x.png"},{"idiom":"iphone","scale":"2x","size":"60x60","filename":"icon-60@2x.png"},{"idiom":"iphone","scale":"3x","size":"60x60","filename":"icon-60@3x.png"},{"idiom":"ipad","scale":"1x","size":"20x20","filename":"icon-20.png"},{"idiom":"ipad","scale":"2x","size":"20x20","filename":"icon-20@2x.png"},{"idiom":"ipad","scale":"1x","size":"29x29","filename":"icon-29.png"},{"idiom":"ipad","scale":"2x","size":"29x29","filename":"icon-29@2x.png"},{"idiom":"ipad","scale":"1x","size":"40x40","filename":"icon-40.png"},{"idiom":"ipad","scale":"2x","size":"40x40","filename":"icon-40@2x.png"},{"idiom":"ipad","scale":"1x","size":"76x76","filename":"icon-76.png"},{"idiom":"ipad","scale":"2x","size":"76x76","filename":"icon-76@2x.png"},{"idiom":"ipad","scale":"2x","size":"83.5x83.5","filename":"icon-83.5@2x.png"},{"idiom":"ios-marketing","scale":"1x","size":"1024x1024","filename":"icon-1024.png"}],"info":{"author":"xcode","version":1}}' > $ICON_DIR/Contents.json
       - name: Set build number
         script: |
           cd ios/App
