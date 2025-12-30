@@ -12,7 +12,7 @@
     "android:build": "npm run build && npx cap add android && npx cap sync android && node scripts/fix-android-manifest.cjs"
   },
   "dependencies": {
-    "@capacitor-community/facebook-login": "^8.0.0",
+    "@capacitor-community/facebook-login": "^7.0.1",
     "@capacitor-community/speech-recognition": "^7.0.1",
     "@capacitor/app": "^7.1.0",
     "@capacitor/browser": "^7.0.2",

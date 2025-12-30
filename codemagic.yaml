@@ -15,12 +15,14 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm install --legacy-peer-deps
-      - name: Install Capacitor CLI
-        script: npm install @capacitor/cli @capacitor/ios --legacy-peer-deps
       - name: Build web app
         script: npm run build
       - name: Copy web assets
         script: npx cap copy ios
+      - name: Fix Bundle ID
+        script: |
+          cd ios/App
+          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = io.ionic.starter/PRODUCT_BUNDLE_IDENTIFIER = es.movilive.hablacondios2/g" App.xcodeproj/project.pbxproj
       - name: Setup App Icons
         script: |
           ICON_DIR=ios/App/App/Assets.xcassets/AppIcon.appiconset
@@ -44,7 +46,7 @@ workflows:
       - name: Set build number
         script: |
           cd ios/App
-          agvtool new-version -all 74
+          agvtool new-version -all 75
       - name: Install CocoaPods
         script: cd ios/App && pod install
       - name: Set up code signing
