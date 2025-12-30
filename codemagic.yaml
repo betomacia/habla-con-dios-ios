@@ -15,10 +15,12 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm install --legacy-peer-deps
+      - name: Install Capacitor CLI
+        script: npm install @capacitor/cli @capacitor/ios --legacy-peer-deps
       - name: Build web app
         script: npm run build
-      - name: Sync iOS
-        script: npx cap sync ios
+      - name: Copy web assets
+        script: npx cap copy ios
       - name: Setup App Icons
         script: |
           ICON_DIR=ios/App/App/Assets.xcassets/AppIcon.appiconset
