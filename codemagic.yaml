@@ -22,7 +22,14 @@ workflows:
       - name: Add iOS platform
         script: |
           rm -rf ios
-          npx cap add ios
+          npx cap add ios || true
+      - name: Fix iOS Deployment Target
+        script: |
+          cd ios/App
+          sed -i '' "s/platform :ios, '13.0'/platform :ios, '14.0'/g" Podfile
+          sed -i '' "s/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g" App.xcodeproj/project.pbxproj
+      - name: Install CocoaPods
+        script: cd ios/App && pod install
       - name: Copy Info.plist with Facebook SDK
         script: |
           cat > ios/App/App/Info.plist << 'PLISTEOF'
@@ -132,8 +139,6 @@ workflows:
         script: |
           cd ios/App
           agvtool new-version -all 74
-      - name: Install CocoaPods
-        script: cd ios/App && pod install
       - name: Set up code signing
         script: |
           app-store-connect fetch-signing-files "es.movilive.hablacondios2" --type IOS_APP_STORE --create
